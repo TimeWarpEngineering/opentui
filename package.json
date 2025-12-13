@@ -16,9 +16,12 @@
     "prepare-release": "bun scripts/prepare-release.ts",
     "test:go": "cd packages/go && go test -v . && go build ./examples/...",
     "prettier:write": "prettier --write .",
-    "test": "bun run --filter '@opentui/core' --filter '@opentui/solid' --if-present test"
+    "test": "bun run --filter '@opentui/core' --filter '@opentui/solid' --if-present test",
+    "analyze-deps": "bun scripts/analyze-deps.ts"
   },
   "devDependencies": {
+    "@dagrejs/graphlib": "^2.2.4",
+    "madge": "^8.0.0",
     "prettier": "3.6.2"
   },
   "prettier": {
