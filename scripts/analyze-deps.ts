@@ -3,7 +3,7 @@
  * Dependency Graph Analysis for C# Conversion Planning
  *
  * This script analyzes the TypeScript codebase in packages/core/src to:
- * - Build a dependency graph
+ * - Build a dependency graph using skott
  * - Perform topological sort (leaves → root order for conversion)
  * - Map test files to source files
  * - Rank examples by complexity
@@ -11,16 +11,13 @@
  * - Generate visual SVG and markdown report
  */
 
-// @ts-ignore - madge has no type definitions
-import madge from "madge"
+import skott from "skott"
 import { Graph, alg } from "@dagrejs/graphlib"
 import { join, basename, dirname, relative } from "path"
 
 const ROOT = join(import.meta.dir, "..")
 const CORE_SRC = join(ROOT, "packages/core/src")
 const OUTPUT_DIR = join(ROOT, "scripts")
-
-type DependencyGraph = Record<string, string[]>
 
 interface FileInfo {
   path: string
@@ -85,23 +82,39 @@ async function analyzeExamples(): Promise<{ path: string; depCount: number }[]> 
 
 async function analyze(): Promise<AnalysisResult> {
   console.log("🔍 Analyzing dependencies in packages/core/src...")
-  console.log("   Excluding: 3d/**, zig/**\n")
+  console.log("   Excluding: 3d/**, zig/**, *.test.ts, *.d.ts\n")
 
-  // Use madge to build dependency graph
-  const res = await madge(CORE_SRC, {
-    fileExtensions: ["ts"],
-    excludeRegExp: [/^3d\//, /^zig\//, /\.test\.ts$/, /\.d\.ts$/],
-    tsConfig: join(ROOT, "packages/core/tsconfig.json"),
+  // Use skott to build dependency graph
+  const { getStructure, useGraph } = await skott({
+    cwd: CORE_SRC,
+    entrypoint: undefined, // Analyze all files
+    ignorePatterns: ["3d/**/*", "zig/**/*", "**/*.test.ts", "**/*.d.ts"],
+    fileExtensions: [".ts", ".tsx"],
+    tsConfigPath: join(ROOT, "packages/core/tsconfig.json"),
+    dependencyTracking: {
+      builtin: false,
+      thirdParty: false,
+      typeOnly: true,
+    },
   })
 
-  const graph: DependencyGraph = res.obj()
-  const circular: string[][] = res.circular()
+  const { graph: skottGraph, files: skottFiles } = getStructure()
+  const { findCircularDependencies } = useGraph()
 
-  // Build our own graph for topological sort
+  // Convert skott graph to our format
+  const graph: Record<string, string[]> = {}
+  for (const [filePath, node] of Object.entries(skottGraph)) {
+    graph[filePath] = node.adjacentTo
+  }
+
+  // Get circular dependencies from skott
+  const circular = findCircularDependencies()
+
+  // Build our own graph for topological sort using graphlib
   const g = new Graph({ directed: true })
 
   // Add all nodes
-  for (const file of Object.keys(graph)) {
+  for (const file of skottFiles) {
     g.setNode(file)
   }
 
@@ -157,7 +170,9 @@ async function analyze(): Promise<AnalysisResult> {
 
   // Populate file info
   for (const file of Object.keys(graph)) {
-    const fullPath = join(CORE_SRC, file)
+    // skott returns paths relative to cwd, which is CORE_SRC, but prefixed with full path
+    // Normalize to get the actual full path
+    const fullPath = file.startsWith("packages/") ? join(ROOT, file) : join(CORE_SRC, file)
     const testFile = await findTestFile(fullPath)
 
     files.set(file, {
@@ -319,20 +334,61 @@ These cycles must be resolved before conversion:
   return md
 }
 
-async function generateSvg(): Promise<void> {
+function generateDotGraph(graph: Record<string, string[]>): string {
+  let dot = `digraph Dependencies {\n`
+  dot += `  rankdir=LR;\n`
+  dot += `  node [shape=box, style=filled, fillcolor=lightblue];\n`
+  dot += `  edge [color=gray];\n\n`
+
+  // Add all edges
+  for (const [file, deps] of Object.entries(graph)) {
+    const fromNode = file.replace(/[/.]/g, "_")
+    for (const dep of deps) {
+      const toNode = dep.replace(/[/.]/g, "_")
+      dot += `  "${fromNode}" -> "${toNode}";\n`
+    }
+  }
+
+  // Add labels for nodes
+  dot += `\n`
+  for (const file of Object.keys(graph)) {
+    const nodeId = file.replace(/[/.]/g, "_")
+    const label = file.length > 30 ? "..." + file.slice(-27) : file
+    dot += `  "${nodeId}" [label="${label}"];\n`
+  }
+
+  dot += `}\n`
+  return dot
+}
+
+async function generateSvg(graph: Record<string, string[]>): Promise<void> {
   console.log("📊 Generating SVG dependency graph...")
 
-  const res = await madge(CORE_SRC, {
-    fileExtensions: ["ts"],
-    excludeRegExp: [/^3d\//, /^zig\//, /\.test\.ts$/, /\.d\.ts$/],
-    tsConfig: join(ROOT, "packages/core/tsconfig.json"),
-  })
-
+  const dotContent = generateDotGraph(graph)
+  const dotPath = join(OUTPUT_DIR, "dependency-graph.dot")
   const svgPath = join(OUTPUT_DIR, "dependency-graph.svg")
 
+  // Write DOT file
+  await Bun.write(dotPath, dotContent)
+
+  // Generate SVG using dot command
   try {
-    await res.image(svgPath)
-    console.log(`   ✅ Generated: ${relative(ROOT, svgPath)}`)
+    const proc = Bun.spawn(["dot", "-Tsvg", "-o", svgPath, dotPath], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+
+    const exitCode = await proc.exited
+
+    if (exitCode === 0) {
+      console.log(`   ✅ Generated: ${relative(ROOT, svgPath)}`)
+      // Clean up DOT file
+      ;(await Bun.file(dotPath).exists()) && (await Bun.$`rm ${dotPath}`.quiet())
+    } else {
+      const stderr = await new Response(proc.stderr).text()
+      console.error(`   ❌ Failed to generate SVG: ${stderr}`)
+      console.log("   💡 Make sure graphviz is installed: sudo apt install graphviz")
+    }
   } catch (e) {
     console.error(`   ❌ Failed to generate SVG: ${e}`)
     console.log("   💡 Make sure graphviz is installed: sudo apt install graphviz")
@@ -342,10 +398,17 @@ async function generateSvg(): Promise<void> {
 async function main() {
   console.log("=".repeat(60))
   console.log("  OpenTUI Dependency Analysis for C# Conversion")
+  console.log("  Powered by skott")
   console.log("=".repeat(60))
   console.log()
 
   const result = await analyze()
+
+  // Build graph object for SVG generation
+  const graph: Record<string, string[]> = {}
+  for (const [file, info] of result.files) {
+    graph[file] = info.dependencies
+  }
 
   // Generate markdown report
   const mdPath = join(OUTPUT_DIR, "conversion-order.md")
@@ -354,7 +417,7 @@ async function main() {
   console.log(`📝 Generated: ${relative(ROOT, mdPath)}`)
 
   // Generate SVG
-  await generateSvg()
+  await generateSvg(graph)
 
   console.log()
   console.log("=".repeat(60))

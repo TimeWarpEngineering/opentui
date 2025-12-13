@@ -21,8 +21,9 @@
   },
   "devDependencies": {
     "@dagrejs/graphlib": "^2.2.4",
-    "madge": "^8.0.0",
-    "prettier": "3.6.2"
+    "@skottorg/static-file-plugin": "^0.0.1",
+    "prettier": "3.6.2",
+    "skott": "^0.35.6"
   },
   "prettier": {
     "semi": false,
