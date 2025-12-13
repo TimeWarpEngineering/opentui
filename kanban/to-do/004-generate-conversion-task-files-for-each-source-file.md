@@ -2,11 +2,16 @@
 
 ## Summary
 
-Auto-generate individual kanban task files for each convertible TypeScript file, plus a master checklist to track overall C# conversion progress.
+Auto-generate individual kanban task files for each convertible TypeScript file, plus a master checklist to track overall C# conversion progress. Each task will include test mappings with TypeScript test names and their C# equivalents.
 
 ## Todo List
 
-- [ ] Create conversion task template
+- [ ] Parse test files to extract test structure:
+  - [ ] Handle nested `describe`/`it` pattern (e.g., Input.test.ts)
+  - [ ] Handle flat `test` pattern with prefix (e.g., KeyHandler.test.ts)
+  - [ ] Handle `describe` with `test` blocks (e.g., env.test.ts)
+- [ ] Convert test names to C# naming convention (Pascal_Snake_Case)
+- [ ] Create conversion task template with test mappings
 - [ ] For each convertible file (in topological/phase order):
   - [ ] Generate `kanban/to-do/convert-{kebab-name}.md` with:
     - [ ] Source file path
@@ -15,6 +20,8 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
     - [ ] Dependencies list with links to their task files
     - [ ] Dependents list (what's blocked by this file)
     - [ ] Links to depth-1 and depth-2 SVG files
+    - [ ] Test name mapping table (TypeScript → C#)
+    - [ ] Test execution commands
 - [ ] Generate `kanban/to-do/005-conversion-checklist.md` master checklist:
   - [ ] Group files by phase (Phase 0, Phase 1, etc.)
   - [ ] Each file links to its conversion task
@@ -28,25 +35,98 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
 
 **Labels/Tags:** tooling, c#-conversion, automation
 
-**Depends on:** Task 003 (per-file graphs)
+**Depends on:** Task 003 (per-file graphs) - COMPLETED
 
-### Task Template
+### C# File Naming Convention
+
+TypeScript test files map to C# with kebab-case:
+
+- `KeyHandler.test.ts` → `keyhandler-tests.cs`
+- `Input.test.ts` → `input-tests.cs`
+- `parse.keypress.test.ts` → `parse-keypress-tests.cs`
+
+### Test Structure Patterns Found
+
+**Pattern 1: Nested `describe`/`it`** (ideal case - e.g., Input.test.ts):
+
+```typescript
+describe("InputRenderable", () => {
+  describe("Initialization", () => {
+    it("should initialize properly with default options", () => { ... })
+  })
+})
+```
+
+Maps to:
+
+```
+Namespace: InputRenderable
+Class: Initialization
+Method: Should_Initialize_Properly_With_Default_Options
+```
+
+**Pattern 2: Flat `test` with prefix** (e.g., KeyHandler.test.ts):
+
+```typescript
+test("KeyHandler - emits keypress events", () => { ... })
+test("InternalKeyHandler - onInternal handlers run after regular handlers", () => { ... })
+```
+
+Maps to (grouped by prefix):
+
+```
+Class: KeyHandler
+Method: Emits_Keypress_Events
+
+Class: InternalKeyHandler
+Method: OnInternal_Handlers_Run_After_Regular_Handlers
+```
+
+**Pattern 3: `describe` with `test` blocks** (e.g., env.test.ts):
+
+```typescript
+describe("env registry", () => {
+  test("should register and access string env vars", () => { ... })
+})
+```
+
+Maps to:
+
+```
+Class: Env_Registry
+Method: Should_Register_And_Access_String_Env_Vars
+```
+
+### C# Test Naming Convention
+
+- Mirror the TypeScript test name exactly
+- Convert to Pascal_Snake_Case (capitalize first letter of each word, use underscores)
+- Strip redundant class name prefixes when present (e.g., `"KeyHandler - "`)
+
+Examples:
+
+- `"should initialize properly with default options"` → `Should_Initialize_Properly_With_Default_Options`
+- `"handles modifier keys correctly"` → `Handles_Modifier_Keys_Correctly`
+- `"KeyHandler - emits keypress events"` → `Emits_Keypress_Events` (prefix stripped)
+- `"Verify mouse scroll event reception"` → `Verify_Mouse_Scroll_Event_Reception`
+
+### Task Template (Updated)
 
 Each generated task file will follow this structure:
 
-```markdown
+````markdown
 # Convert {file} to C#
 
 ## Overview
 
 - **Source**: `packages/core/src/{path}`
 - **Phase**: {N}
-- **Test Coverage**: Yes/No `{test-file-path}`
+- **Test Coverage**: ✅/❌ `{test-file-path}`
 
 ## Dependencies (convert these first)
 
-- [ ] `dep1.ts` -> [task](./convert-dep1.md)
-- [ ] `dep2.ts` -> [task](./convert-dep2.md)
+- [ ] `dep1.ts` → [task](./convert-dep1.md)
+- [ ] `dep2.ts` → [task](./convert-dep2.md)
 
 ## Dependents (blocked until this is done)
 
@@ -58,6 +138,24 @@ Each generated task file will follow this structure:
 - [Depth 1 - Direct](../../scripts/dependency-graphs/{name}-depth-1.svg)
 - [Depth 2 - Extended](../../scripts/dependency-graphs/{name}-depth-2.svg)
 
+## Tests
+
+### Class: {ClassName}
+
+| TypeScript Test Name                              | C# Test Name                                      |
+| ------------------------------------------------- | ------------------------------------------------- |
+| `should initialize properly with default options` | `Should_Initialize_Properly_With_Default_Options` |
+| `handles modifier keys correctly`                 | `Handles_Modifier_Keys_Correctly`                 |
+
+## Test Execution
+
+```bash
+cd test/timewarp-tui-core-tests
+dotnet fixie --tests "{ClassName}.Should_Initialize_Properly_With_Default_Options"
+dotnet fixie --tests "{ClassName}.Handles_Modifier_Keys_Correctly"
+```
+````
+
 ## Implementation Notes
 
 {Space for manual notes during conversion}
@@ -65,7 +163,43 @@ Each generated task file will follow this structure:
 ## Results
 
 {Added after completion}
-```
+
+````
+
+### Example: Nested Describe (Input.test.ts)
+
+```markdown
+## Tests
+
+### Namespace: InputRenderable
+
+#### Class: Initialization
+
+| TypeScript Test Name | C# Test Name |
+|---------------------|--------------|
+| `should initialize properly with default options` | `Should_Initialize_Properly_With_Default_Options` |
+| `should initialize with custom options` | `Should_Initialize_With_Custom_Options` |
+
+#### Class: Focus_Management
+
+| TypeScript Test Name | C# Test Name |
+|---------------------|--------------|
+| `should handle focus and blur correctly` | `Should_Handle_Focus_And_Blur_Correctly` |
+| `should emit change event on blur if value changed` | `Should_Emit_Change_Event_On_Blur_If_Value_Changed` |
+
+## Test Execution
+
+```bash
+cd test/timewarp-tui-core-tests
+# Initialization tests
+dotnet fixie --tests "InputRenderable.Initialization.Should_Initialize_Properly_With_Default_Options"
+dotnet fixie --tests "InputRenderable.Initialization.Should_Initialize_With_Custom_Options"
+
+# Focus Management tests
+dotnet fixie --tests "InputRenderable.Focus_Management.Should_Handle_Focus_And_Blur_Correctly"
+````
+
+````
 
 ### Master Checklist Structure
 
@@ -84,17 +218,16 @@ The master checklist (`005-conversion-checklist.md`) will be structured as:
 
 - [ ] [lib/RGBA.ts](./convert-lib-rgba.md)
 - [ ] [ansi.ts](./convert-ansi.md)
-      ...
+...
 
 ## Phase 1 - {count} files
 
 - [ ] [lib/border.ts](./convert-lib-border.md)
-      ...
+...
 
 ## Phase 2 - {count} files
-
 ...
-```
+````
 
 ### Expected Output
 
@@ -105,8 +238,60 @@ kanban/to-do/
 ├── convert-ansi.md
 ├── convert-types.md
 ├── convert-renderer.md
-└── ... (~25-35 conversion tasks)
+└── ... (~59 conversion tasks)
 ```
+
+---
+
+## Questions for Clarification (Before Implementation)
+
+### 1. Flat test grouping
+
+For `KeyHandler.test.ts` with tests like:
+
+- `"KeyHandler - emits keypress events"`
+- `"InternalKeyHandler - onInternal handlers run after regular handlers"`
+
+Should these be two separate classes in the same file?
+
+```csharp
+// keyhandler-tests.cs
+public class KeyHandler { ... }
+public class InternalKeyHandler { ... }
+```
+
+Or should `InternalKeyHandler` tests go in a separate file since it's a different class?
+
+### 2. Tests without prefix
+
+If a flat test doesn't have a `"ClassName - "` prefix pattern, should it default to a class name derived from the filename?
+
+- `KeyHandler.test.ts` → `KeyHandler` class by default
+
+### 3. Namespace handling
+
+In the nested example, you showed `Namespace: InputRenderable`. Should this be:
+
+- The C# namespace for the test file?
+- Or just documentation showing the describe block hierarchy?
+
+### 4. C# file structure for nested describes
+
+For a test file like `Input.test.ts` with multiple describe groups:
+
+```typescript
+describe("InputRenderable", () => {
+  describe("Initialization", () => { ... })
+  describe("Focus Management", () => { ... })
+})
+```
+
+Should this generate:
+
+- One file `input-tests.cs` with nested classes?
+- Multiple files like `input-initialization-tests.cs`, `input-focus-management-tests.cs`?
+
+---
 
 ## Results
 
