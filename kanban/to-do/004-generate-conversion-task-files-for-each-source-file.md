@@ -243,16 +243,16 @@ kanban/to-do/
 
 ---
 
-## Questions for Clarification (Before Implementation)
+## Clarification Decisions (Resolved)
 
-### 1. Flat test grouping
+### 1. Flat test grouping → Same file, separate classes
 
 For `KeyHandler.test.ts` with tests like:
 
 - `"KeyHandler - emits keypress events"`
 - `"InternalKeyHandler - onInternal handlers run after regular handlers"`
 
-Should these be two separate classes in the same file?
+**Decision:** Two separate classes in the same file (1:1 mapping with TypeScript file):
 
 ```csharp
 // keyhandler-tests.cs
@@ -260,22 +260,19 @@ public class KeyHandler { ... }
 public class InternalKeyHandler { ... }
 ```
 
-Or should `InternalKeyHandler` tests go in a separate file since it's a different class?
+### 2. Tests without prefix → Default to filename-derived class
 
-### 2. Tests without prefix
-
-If a flat test doesn't have a `"ClassName - "` prefix pattern, should it default to a class name derived from the filename?
+**Decision:** Yes, default to class name derived from filename.
 
 - `KeyHandler.test.ts` → `KeyHandler` class by default
 
-### 3. Namespace handling
+### 3. Namespace handling → C# namespace for test file
 
-In the nested example, you showed `Namespace: InputRenderable`. Should this be:
+**Decision:** The `Namespace` refers to the C# namespace for the test file.
 
-- The C# namespace for the test file?
-- Or just documentation showing the describe block hierarchy?
+This is non-traditional but makes the fully-qualified test name read much better (e.g., `InputRenderable.Initialization.Should_Initialize_Properly`).
 
-### 4. C# file structure for nested describes
+### 4. C# file structure for nested describes → Folder with split classes
 
 For a test file like `Input.test.ts` with multiple describe groups:
 
@@ -286,10 +283,16 @@ describe("InputRenderable", () => {
 })
 ```
 
-Should this generate:
+**Decision:** Use a folder that 1:1 matches the TypeScript file, then split each class to its own file inside that folder:
 
-- One file `input-tests.cs` with nested classes?
-- Multiple files like `input-initialization-tests.cs`, `input-focus-management-tests.cs`?
+```
+input-tests/
+├── Initialization.cs
+├── FocusManagement.cs
+└── ... (one file per inner describe)
+```
+
+This keeps cognitive load low while maintaining the 1:1 mapping to the source file.
 
 ---
 
