@@ -523,6 +523,7 @@ function generateTaskFile(
 
 ## Overview
 
+- **Repo**: \`${ROOT}\`
 - **Source**: \`${file}\`
 - **Phase**: ${info.depth}
 - **Test Coverage**: ${info.hasTest ? `✅ \`${info.testFile}\`` : "❌ No tests"}

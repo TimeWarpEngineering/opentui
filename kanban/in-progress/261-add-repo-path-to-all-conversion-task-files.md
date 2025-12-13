@@ -6,8 +6,8 @@ Add the repo/worktree path to the Overview section of all 59 conversion task fil
 
 ## Todo List
 
-- [ ] Update all conversion task files (202-260) to add repo path to Overview section
-- [ ] Update `scripts/generate-conversion-tasks.ts` to include repo path in template for future regeneration
+- [x] Update all conversion task files (202-260) to add repo path to Overview section
+- [x] Update `scripts/generate-conversion-tasks.ts` to include repo path in template for future regeneration
 
 ## Notes
 
@@ -51,4 +51,9 @@ Or update the generation script and regenerate all tasks.
 
 ## Results
 
-_Added after completion_
+**Completed on 2024-12-14:**
+
+1. Updated all 59 conversion task files (202-260) using sed to add repo path after Overview header
+2. Updated `scripts/generate-conversion-tasks.ts` to include `- **Repo**: \`${ROOT}\`` in the template
+
+All files now include the repo path in their Overview section.

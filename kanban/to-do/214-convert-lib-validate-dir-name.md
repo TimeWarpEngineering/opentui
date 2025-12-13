@@ -2,6 +2,7 @@
 
 ## Overview
 
+- **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/validate-dir-name.ts`
 - **Phase**: 0
 - **Test Coverage**: ❌ No tests

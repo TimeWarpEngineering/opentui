@@ -2,6 +2,7 @@
 
 ## Overview
 
+- **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/renderables/composition/VRenderable.ts`
 - **Phase**: 1
 - **Test Coverage**: ❌ No tests

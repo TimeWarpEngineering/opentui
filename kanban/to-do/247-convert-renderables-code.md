@@ -2,6 +2,7 @@
 
 ## Overview
 
+- **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/renderables/Code.ts`
 - **Phase**: 5
 - **Test Coverage**: ✅ `packages/core/src/renderables/Code.test.ts`

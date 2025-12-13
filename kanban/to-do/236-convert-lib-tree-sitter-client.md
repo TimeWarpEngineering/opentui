@@ -2,6 +2,7 @@
 
 ## Overview
 
+- **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/tree-sitter/client.ts`
 - **Phase**: 2
 - **Test Coverage**: ✅ `packages/core/src/lib/tree-sitter/client.test.ts`
