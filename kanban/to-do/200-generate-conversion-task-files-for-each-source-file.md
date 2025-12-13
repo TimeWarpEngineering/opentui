@@ -13,7 +13,7 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
 - [ ] Convert test names to C# naming convention (Pascal_Snake_Case)
 - [ ] Create conversion task template with test mappings
 - [ ] For each convertible file (in topological/phase order):
-  - [ ] Generate `kanban/to-do/convert-{kebab-name}.md` with:
+  - [ ] Generate `kanban/to-do/{NNN}-convert-{kebab-name}.md` with:
     - [ ] Source file path
     - [ ] Phase number (dependency depth)
     - [ ] Test coverage status and test file path
@@ -22,7 +22,7 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
     - [ ] Links to depth-1 and depth-2 SVG files
     - [ ] Test name mapping table (TypeScript → C#)
     - [ ] Test execution commands
-- [ ] Generate `kanban/to-do/005-conversion-checklist.md` master checklist:
+- [ ] Generate `kanban/to-do/201-conversion-checklist.md` master checklist:
   - [ ] Group files by phase (Phase 0, Phase 1, etc.)
   - [ ] Each file links to its conversion task
   - [ ] Checkbox format for tracking progress
@@ -157,8 +157,8 @@ Each conversion task file will follow this structure:
 
 ## Dependencies (convert these first)
 
-- [ ] `dep1.ts` → [task](./convert-dep1.md)
-- [ ] `dep2.ts` → [task](./convert-dep2.md)
+- [ ] `dep1.ts` → [task](./NNN-convert-dep1.md)
+- [ ] `dep2.ts` → [task](./NNN-convert-dep2.md)
 
 ## Dependents (blocked until this is done)
 
@@ -199,7 +199,7 @@ dotnet fixie --tests "{ClassName}.Should_Initialize_Properly"
 
 ## Master Checklist Structure
 
-The master checklist (`005-conversion-checklist.md`) will be structured as:
+The master checklist (`201-conversion-checklist.md`) will be structured as:
 
 ```markdown
 # C# Conversion Checklist
@@ -212,13 +212,13 @@ The master checklist (`005-conversion-checklist.md`) will be structured as:
 
 ## Phase 0 (No Dependencies) - {count} files
 
-- [ ] [lib/RGBA.ts](./convert-lib-rgba.md)
-- [ ] [ansi.ts](./convert-ansi.md)
+- [ ] [lib/RGBA.ts](./202-convert-lib-rgba.md)
+- [ ] [ansi.ts](./203-convert-ansi.md)
       ...
 
 ## Phase 1 - {count} files
 
-- [ ] [lib/border.ts](./convert-lib-border.md)
+- [ ] [lib/border.ts](./204-convert-lib-border.md)
       ...
 ```
 
@@ -228,12 +228,12 @@ The master checklist (`005-conversion-checklist.md`) will be structured as:
 
 ```
 kanban/to-do/
-├── 005-conversion-checklist.md    # Master epic/checklist
-├── convert-lib-rgba.md
-├── convert-ansi.md
-├── convert-types.md
-├── convert-renderer.md
-└── ... (~59 conversion tasks)
+├── 201-conversion-checklist.md       # Master epic/checklist
+├── 202-convert-lib-rgba.md
+├── 203-convert-ansi.md
+├── 204-convert-types.md
+├── 205-convert-renderer.md
+└── ... (~59 conversion tasks, numbered 202-260)
 ```
 
 ---
