@@ -153,6 +153,7 @@ Each conversion task file will follow this structure:
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/{path}`
+- **Target**: `source/timewarp-tui-core/{kebab-case-path}.cs`
 - **Phase**: {N}
 - **Test Coverage**: ✅/❌ `{test-file-path}`
 
