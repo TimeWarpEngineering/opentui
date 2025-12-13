@@ -6,28 +6,28 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
 
 ## Todo List
 
-- [ ] Parse test files to extract test structure:
-  - [ ] Handle nested `describe`/`it` pattern (e.g., Input.test.ts)
-  - [ ] Handle flat `test` pattern with prefix (e.g., KeyHandler.test.ts)
-  - [ ] Handle `describe` with `test` blocks (e.g., env.test.ts)
-- [ ] Convert test names to C# naming convention (Pascal_Snake_Case)
-- [ ] Create conversion task template with test mappings
-- [ ] For each convertible file (in topological/phase order):
-  - [ ] Generate `kanban/to-do/{NNN}-convert-{kebab-name}.md` with:
-    - [ ] Source file path
-    - [ ] Phase number (dependency depth)
-    - [ ] Test coverage status and test file path
-    - [ ] Dependencies list with links to their task files
-    - [ ] Dependents list (what's blocked by this file)
-    - [ ] Links to depth-1 and depth-2 SVG files
-    - [ ] Test name mapping table (TypeScript → C#)
-    - [ ] Test execution commands
-- [ ] Generate `kanban/to-do/201-conversion-checklist.md` master checklist:
-  - [ ] Group files by phase (Phase 0, Phase 1, etc.)
-  - [ ] Each file links to its conversion task
-  - [ ] Checkbox format for tracking progress
-- [ ] Update `scripts/analyze-deps.ts` to run task generation
-- [ ] Add `--generate-tasks` flag to control task generation (optional)
+- [x] Parse test files to extract test structure:
+  - [x] Handle nested `describe`/`it` pattern (e.g., Input.test.ts)
+  - [x] Handle flat `test` pattern with prefix (e.g., KeyHandler.test.ts)
+  - [x] Handle `describe` with `test` blocks (e.g., env.test.ts)
+- [x] Convert test names to C# naming convention (Pascal_Snake_Case)
+- [x] Create conversion task template with test mappings
+- [x] For each convertible file (in topological/phase order):
+  - [x] Generate `kanban/to-do/{NNN}-convert-{kebab-name}.md` with:
+    - [x] Source file path
+    - [x] Phase number (dependency depth)
+    - [x] Test coverage status and test file path
+    - [x] Dependencies list with links to their task files
+    - [x] Dependents list (what's blocked by this file)
+    - [x] Links to depth-1 and depth-2 SVG files
+    - [x] Test name mapping table (TypeScript → C#)
+    - [x] Test execution commands
+- [x] Generate `kanban/to-do/201-conversion-checklist.md` master checklist:
+  - [x] Group files by phase (Phase 0, Phase 1, etc.)
+  - [x] Each file links to its conversion task
+  - [x] Checkbox format for tracking progress
+- [x] Update `scripts/analyze-deps.ts` to run task generation
+- [x] Add `--generate-tasks` flag to control task generation (optional)
 
 ## Notes
 
@@ -240,4 +240,42 @@ kanban/to-do/
 
 ## Results
 
-{Added after completion}
+### Implementation Complete ✅
+
+**Created Files:**
+
+- `scripts/generate-conversion-tasks.ts` - Main task generation script
+- `kanban/to-do/201-conversion-checklist.md` - Master checklist with 59 files grouped by phase
+- `kanban/to-do/202-260-convert-*.md` - 59 individual conversion task files
+
+**Features Implemented:**
+
+1. **Test Parsing** - Correctly handles all 3 test patterns:
+   - Pattern 1: Nested `describe`/`it` (e.g., Input.test.ts → 8 test classes)
+   - Pattern 2: Flat `test` with prefix (e.g., KeyHandler.test.ts → 2 classes)
+   - Pattern 3: `describe` with `test` (e.g., env.test.ts → 1 class)
+
+2. **Test Name Conversion** - Pascal_Snake_Case conversion with quote handling
+
+3. **Task File Content:**
+   - Source file path, phase number, test coverage status
+   - Dependencies with links to their task files
+   - Dependents list (what's blocked)
+   - Links to SVG dependency graphs
+   - Test name mapping table (TypeScript → C#)
+   - Test execution commands
+
+4. **Master Checklist:**
+   - 59 files grouped into 18 phases (0-21, some gaps)
+   - Checkbox format with test coverage icons (✅/⚠️)
+   - Links to individual task files
+
+5. **Integration:**
+   - Added `--generate-tasks` flag to `analyze-deps.ts`
+   - Can run standalone via `bun run scripts/generate-conversion-tasks.ts`
+
+**Statistics:**
+
+- Total convertible files: 59
+- Files with tests: 17
+- Tests parsed: 17 (100% of files with tests)

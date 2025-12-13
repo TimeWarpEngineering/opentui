@@ -593,6 +593,10 @@ async function generatePerFileGraphs(files: Map<string, FileInfo>): Promise<numb
 }
 
 async function main() {
+  // Parse command line arguments
+  const args = process.argv.slice(2)
+  const generateTasks = args.includes("--generate-tasks")
+
   console.log("=".repeat(60))
   console.log("  OpenTUI Dependency Analysis for C# Conversion")
   console.log("  Powered by skott")
@@ -619,6 +623,16 @@ async function main() {
   // Generate per-file graphs
   const convertibleCount = await generatePerFileGraphs(result.files)
 
+  // Generate conversion task files if requested
+  if (generateTasks) {
+    console.log("\n📋 Generating conversion task files...")
+    const proc = Bun.spawn(["bun", "run", join(OUTPUT_DIR, "generate-conversion-tasks.ts")], {
+      stdout: "inherit",
+      stderr: "inherit",
+    })
+    await proc.exited
+  }
+
   console.log()
   console.log("=".repeat(60))
   console.log("  Summary")
@@ -629,10 +643,17 @@ async function main() {
   console.log(`  Circular dependencies: ${result.circularDeps.length}`)
   console.log(`  Examples analyzed:     ${result.examples.length}`)
   console.log(`  Per-file SVGs:         ${convertibleCount * 2}`)
+  if (generateTasks) {
+    console.log(`  Task files generated:  Yes (see kanban/to-do/)`)
+  }
   console.log()
 
   if (result.circularDeps.length > 0) {
     console.log("⚠️  Circular dependencies detected! See report for details.")
+  }
+
+  if (!generateTasks) {
+    console.log("💡 Tip: Run with --generate-tasks to generate kanban task files")
   }
 }
 
