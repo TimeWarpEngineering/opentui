@@ -18,6 +18,7 @@ import { join, basename, dirname, relative } from "path"
 const ROOT = join(import.meta.dir, "..")
 const CORE_SRC = join(ROOT, "packages/core/src")
 const OUTPUT_DIR = join(ROOT, "scripts")
+const GRAPHS_DIR = join(OUTPUT_DIR, "dependency-graphs")
 
 interface FileInfo {
   path: string
@@ -27,6 +28,64 @@ interface FileInfo {
   depth: number
   hasTest: boolean
   testFile?: string
+  isConvertible: boolean
+}
+
+/**
+ * Check if a file is "convertible" (should have a conversion task generated)
+ * Excludes: test files, examples, assets, testing utilities, benchmarks, index files
+ */
+function isConvertibleFile(filePath: string): boolean {
+  // Exclude test files
+  if (filePath.includes(".test.ts")) return false
+
+  // Exclude examples
+  if (filePath.includes("/examples/")) return false
+
+  // Exclude assets (images, JSON, wasm, etc.)
+  if (filePath.includes("/assets/")) return false
+
+  // Exclude testing utilities
+  if (filePath.includes("/testing/")) return false
+
+  // Exclude benchmarks
+  if (filePath.includes("/benchmark/")) return false
+
+  // Exclude index/barrel files
+  if (filePath.endsWith("/index.ts") || filePath === "index.ts") return false
+
+  // Exclude 3d and zig directories (already excluded by skott, but be safe)
+  if (filePath.includes("/3d/") || filePath.includes("/zig/")) return false
+
+  return true
+}
+
+/**
+ * Convert a file path to a kebab-case name for SVG files
+ * e.g., "packages/core/src/lib/RGBA.ts" -> "lib-rgba"
+ * e.g., "packages/core/src/types.ts" -> "types"
+ * e.g., "packages/core/src/lib/KeyHandler.ts" -> "lib-key-handler"
+ */
+function toKebabName(filePath: string): string {
+  // Remove the packages/core/src/ prefix
+  let name = filePath.replace(/^packages\/core\/src\//, "")
+
+  // Remove .ts extension
+  name = name.replace(/\.tsx?$/, "")
+
+  // Convert path separators to dashes
+  name = name.replace(/\//g, "-")
+
+  // Convert camelCase and PascalCase to kebab-case
+  name = name.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
+
+  // Replace dots with dashes (e.g., parse.keypress -> parse-keypress)
+  name = name.replace(/\./g, "-")
+
+  // Clean up multiple dashes
+  name = name.replace(/-+/g, "-")
+
+  return name
 }
 
 interface AnalysisResult {
@@ -183,6 +242,7 @@ async function analyze(): Promise<AnalysisResult> {
       depth: depths.get(file) || 0,
       hasTest: !!testFile,
       testFile: testFile ? relative(ROOT, testFile) : undefined,
+      isConvertible: isConvertibleFile(file),
     })
   }
 
@@ -395,6 +455,143 @@ async function generateSvg(graph: Record<string, string[]>): Promise<void> {
   }
 }
 
+/**
+ * Generate a DOT graph for a single file showing its dependencies and dependents
+ * @param centerFile - The file to center the graph on
+ * @param allFiles - Map of all files with their info
+ * @param depth - How many levels of deps/dependents to include (1 or 2)
+ */
+function generatePerFileDot(centerFile: string, allFiles: Map<string, FileInfo>, depth: 1 | 2): string {
+  const centerInfo = allFiles.get(centerFile)
+  if (!centerInfo) return ""
+
+  const nodesToInclude = new Set<string>([centerFile])
+  const edges: Array<{ from: string; to: string; type: "dep" | "dependent" }> = []
+
+  // Collect depth 1 dependencies and dependents
+  for (const dep of centerInfo.dependencies) {
+    nodesToInclude.add(dep)
+    edges.push({ from: centerFile, to: dep, type: "dep" })
+  }
+  for (const dependent of centerInfo.dependents) {
+    nodesToInclude.add(dependent)
+    edges.push({ from: dependent, to: centerFile, type: "dependent" })
+  }
+
+  // Collect depth 2 if requested
+  if (depth === 2) {
+    // Dependencies of dependencies
+    for (const dep of centerInfo.dependencies) {
+      const depInfo = allFiles.get(dep)
+      if (depInfo) {
+        for (const dep2 of depInfo.dependencies) {
+          nodesToInclude.add(dep2)
+          edges.push({ from: dep, to: dep2, type: "dep" })
+        }
+      }
+    }
+    // Dependents of dependents
+    for (const dependent of centerInfo.dependents) {
+      const depInfo = allFiles.get(dependent)
+      if (depInfo) {
+        for (const dep2 of depInfo.dependents) {
+          nodesToInclude.add(dep2)
+          edges.push({ from: dep2, to: dependent, type: "dependent" })
+        }
+      }
+    }
+  }
+
+  // Build DOT content
+  let dot = `digraph PerFileDeps {\n`
+  dot += `  rankdir=LR;\n`
+  dot += `  node [shape=box, style=filled];\n`
+  dot += `  edge [color=gray];\n\n`
+
+  // Add nodes with colors
+  for (const node of nodesToInclude) {
+    const nodeId = node.replace(/[/.]/g, "_")
+    const shortLabel = node.replace(/^packages\/core\/src\//, "")
+    const label = shortLabel.length > 35 ? "..." + shortLabel.slice(-32) : shortLabel
+
+    let fillColor = "lightblue" // default for depth 2 nodes
+    if (node === centerFile) {
+      fillColor = "#90EE90" // light green for center
+    } else if (centerInfo.dependencies.includes(node)) {
+      fillColor = "#FFB6C1" // light pink for direct dependencies
+    } else if (centerInfo.dependents.includes(node)) {
+      fillColor = "#ADD8E6" // light blue for direct dependents
+    }
+
+    dot += `  "${nodeId}" [label="${label}", fillcolor="${fillColor}"];\n`
+  }
+
+  dot += `\n`
+
+  // Add edges
+  for (const edge of edges) {
+    const fromNode = edge.from.replace(/[/.]/g, "_")
+    const toNode = edge.to.replace(/[/.]/g, "_")
+    dot += `  "${fromNode}" -> "${toNode}";\n`
+  }
+
+  dot += `}\n`
+  return dot
+}
+
+/**
+ * Generate per-file SVG graphs for all convertible files
+ */
+async function generatePerFileGraphs(files: Map<string, FileInfo>): Promise<number> {
+  // Create output directory
+  await Bun.$`mkdir -p ${GRAPHS_DIR}`.quiet()
+
+  const convertibleFiles = [...files.entries()].filter(([_, info]) => info.isConvertible)
+  console.log(`\n📊 Generating per-file dependency graphs for ${convertibleFiles.length} convertible files...`)
+
+  let generated = 0
+
+  for (const [filePath, _info] of convertibleFiles) {
+    const kebabName = toKebabName(filePath)
+
+    // Generate depth 1 graph
+    const dot1 = generatePerFileDot(filePath, files, 1)
+    const dot1Path = join(GRAPHS_DIR, `${kebabName}-depth-1.dot`)
+    const svg1Path = join(GRAPHS_DIR, `${kebabName}-depth-1.svg`)
+
+    await Bun.write(dot1Path, dot1)
+    const proc1 = Bun.spawn(["dot", "-Tsvg", "-o", svg1Path, dot1Path], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    await proc1.exited
+    await Bun.$`rm ${dot1Path}`.quiet()
+
+    // Generate depth 2 graph
+    const dot2 = generatePerFileDot(filePath, files, 2)
+    const dot2Path = join(GRAPHS_DIR, `${kebabName}-depth-2.dot`)
+    const svg2Path = join(GRAPHS_DIR, `${kebabName}-depth-2.svg`)
+
+    await Bun.write(dot2Path, dot2)
+    const proc2 = Bun.spawn(["dot", "-Tsvg", "-o", svg2Path, dot2Path], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    await proc2.exited
+    await Bun.$`rm ${dot2Path}`.quiet()
+
+    generated++
+
+    // Progress indicator
+    if (generated % 10 === 0 || generated === convertibleFiles.length) {
+      process.stdout.write(`\r   Generated ${generated}/${convertibleFiles.length} file pairs...`)
+    }
+  }
+
+  console.log(`\n   ✅ Generated ${generated * 2} SVG files in scripts/dependency-graphs/`)
+  return generated
+}
+
 async function main() {
   console.log("=".repeat(60))
   console.log("  OpenTUI Dependency Analysis for C# Conversion")
@@ -419,14 +616,19 @@ async function main() {
   // Generate SVG
   await generateSvg(graph)
 
+  // Generate per-file graphs
+  const convertibleCount = await generatePerFileGraphs(result.files)
+
   console.log()
   console.log("=".repeat(60))
   console.log("  Summary")
   console.log("=".repeat(60))
-  console.log(`  Total files:          ${result.files.size}`)
-  console.log(`  Test coverage:        ${result.testCoverage.covered.length}/${result.files.size}`)
+  console.log(`  Total files:           ${result.files.size}`)
+  console.log(`  Convertible files:     ${convertibleCount}`)
+  console.log(`  Test coverage:         ${result.testCoverage.covered.length}/${result.files.size}`)
   console.log(`  Circular dependencies: ${result.circularDeps.length}`)
-  console.log(`  Examples analyzed:    ${result.examples.length}`)
+  console.log(`  Examples analyzed:     ${result.examples.length}`)
+  console.log(`  Per-file SVGs:         ${convertibleCount * 2}`)
   console.log()
 
   if (result.circularDeps.length > 0) {
