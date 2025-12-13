@@ -97,8 +97,8 @@ describe("InputRenderable", () => {
 
 ```
 input-tests/
-├── Initialization.cs      // namespace InputRenderable { class Initialization { ... } }
-└── FocusManagement.cs     // namespace InputRenderable { class FocusManagement { ... } }
+├── initialization.cs          // namespace InputRenderable { class Initialization { ... } }
+└── focus-management.cs        // namespace InputRenderable { class FocusManagement { ... } }
 ```
 
 ### Pattern 2: Flat `test` with prefix → Single file, multiple classes
