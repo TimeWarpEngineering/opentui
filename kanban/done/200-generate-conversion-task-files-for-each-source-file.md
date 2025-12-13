@@ -151,6 +151,7 @@ Each conversion task file will follow this structure:
 
 ## Overview
 
+- **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/{path}`
 - **Phase**: {N}
 - **Test Coverage**: ✅/❌ `{test-file-path}`
