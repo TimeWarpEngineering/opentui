@@ -37,6 +37,12 @@ Auto-generate individual kanban task files for each convertible TypeScript file,
 
 **Depends on:** Task 003 (per-file graphs) - COMPLETED
 
+**Delegation:** The kanban-manager agent handles task organization only. Delegate implementation steps (script writing, code changes) to the **copilot** agent using:
+
+```
+Task(description="Implement task generation", prompt="<detailed implementation request>", subagent_type="copilot")
+```
+
 ---
 
 ## Design Decisions
