@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/validate-dir-name.ts`
+- **Target**: `source/timewarp-tui-core/lib/validate-dir-name.cs`
 - **Phase**: 0
 - **Test Coverage**: ❌ No tests
 

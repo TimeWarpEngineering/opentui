@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/text-buffer.ts`
+- **Target**: `source/timewarp-tui-core/text-buffer.cs`
 - **Phase**: 15
 - **Test Coverage**: ✅ `packages/core/src/text-buffer.test.ts`
 

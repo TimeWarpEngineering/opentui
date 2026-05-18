@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/styled-text.ts`
+- **Target**: `source/timewarp-tui-core/lib/styled-text.cs`
 - **Phase**: 14
 - **Test Coverage**: ❌ No tests
 

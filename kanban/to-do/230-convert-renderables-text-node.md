@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/renderables/TextNode.ts`
+- **Target**: `source/timewarp-tui-core/renderables/text-node.cs`
 - **Phase**: 1
 - **Test Coverage**: ✅ `packages/core/src/renderables/TextNode.test.ts`
 

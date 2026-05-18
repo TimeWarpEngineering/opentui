@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/renderables/ScrollBar.ts`
+- **Target**: `source/timewarp-tui-core/renderables/scroll-bar.cs`
 - **Phase**: 7
 - **Test Coverage**: ❌ No tests
 

@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/renderables/TextBufferRenderable.ts`
+- **Target**: `source/timewarp-tui-core/renderables/text-buffer-renderable.cs`
 - **Phase**: 3
 - **Test Coverage**: ❌ No tests
 

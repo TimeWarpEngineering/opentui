@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/parse.keypress-kitty.ts`
+- **Target**: `source/timewarp-tui-core/lib/parse-keypress-kitty.cs`
 - **Phase**: 1
 - **Test Coverage**: ✅ `packages/core/src/lib/parse.keypress-kitty.test.ts`
 

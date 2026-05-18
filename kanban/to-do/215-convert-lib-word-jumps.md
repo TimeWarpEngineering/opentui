@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/word-jumps.ts`
+- **Target**: `source/timewarp-tui-core/lib/word-jumps.cs`
 - **Phase**: 0
 - **Test Coverage**: ✅ `packages/core/src/lib/word-jumps.test.ts`
 

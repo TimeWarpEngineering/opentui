@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/debounce.ts`
+- **Target**: `source/timewarp-tui-core/lib/debounce.cs`
 - **Phase**: 0
 - **Test Coverage**: ❌ No tests
 

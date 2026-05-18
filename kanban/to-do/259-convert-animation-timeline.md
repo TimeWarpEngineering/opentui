@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/animation/Timeline.ts`
+- **Target**: `source/timewarp-tui-core/animation/timeline.cs`
 - **Phase**: 19
 - **Test Coverage**: ✅ `packages/core/src/animation/Timeline.test.ts`
 

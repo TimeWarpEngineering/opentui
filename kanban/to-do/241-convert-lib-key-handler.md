@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/KeyHandler.ts`
+- **Target**: `source/timewarp-tui-core/lib/key-handler.cs`
 - **Phase**: 3
 - **Test Coverage**: ✅ `packages/core/src/lib/KeyHandler.test.ts`
 

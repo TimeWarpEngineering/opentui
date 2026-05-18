@@ -95,6 +95,31 @@ function toKebabName(filePath: string): string {
   return name
 }
 
+/**
+ * Convert a source path to a C# target path
+ * e.g., "packages/core/src/lib/RGBA.ts" -> "source/timewarp-tui-core/lib/rgba.cs"
+ */
+function toTargetPath(sourcePath: string): string {
+  // Strip the prefix
+  let path = sourcePath.replace(/^packages\/core\/src\//, "")
+
+  // Get directory and filename separately
+  const dir = dirname(path)
+  const file = basename(path, ".ts")
+
+  // Convert filename to kebab-case
+  let kebabFile = file
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1-$2")
+    .replace(/\./g, "-")
+    .toLowerCase()
+    .replace(/-+/g, "-")
+
+  // Reconstruct the path
+  const targetDir = dir === "." ? "" : dir + "/"
+  return `source/timewarp-tui-core/${targetDir}${kebabFile}.cs`
+}
+
 // ============================================================================
 // Test File Parsing
 // ============================================================================
@@ -518,6 +543,7 @@ function generateTaskFile(
 ): string {
   const kebabName = toKebabName(file)
   const displayName = file.replace(/^packages\/core\/src\//, "")
+  const targetPath = toTargetPath(file)
 
   let md = `# Convert ${displayName} to C#
 
@@ -525,6 +551,7 @@ function generateTaskFile(
 
 - **Repo**: \`${ROOT}\`
 - **Source**: \`${file}\`
+- **Target**: \`${targetPath}\`
 - **Phase**: ${info.depth}
 - **Test Coverage**: ${info.hasTest ? `✅ \`${info.testFile}\`` : "❌ No tests"}
 

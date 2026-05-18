@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/data-paths.ts`
+- **Target**: `source/timewarp-tui-core/lib/data-paths.cs`
 - **Phase**: 2
 - **Test Coverage**: ✅ `packages/core/src/lib/data-paths.test.ts`
 

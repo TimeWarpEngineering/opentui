@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/objects-in-viewport.ts`
+- **Target**: `source/timewarp-tui-core/lib/objects-in-viewport.cs`
 - **Phase**: 1
 - **Test Coverage**: ❌ No tests
 

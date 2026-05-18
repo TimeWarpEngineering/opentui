@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/Renderable.ts`
+- **Target**: `source/timewarp-tui-core/renderable.cs`
 - **Phase**: 17
 - **Test Coverage**: ❌ No tests
 

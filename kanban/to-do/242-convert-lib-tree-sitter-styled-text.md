@@ -4,6 +4,7 @@
 
 - **Repo**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/opentui/Cramer-2025-11-21-dev`
 - **Source**: `packages/core/src/lib/tree-sitter-styled-text.ts`
+- **Target**: `source/timewarp-tui-core/lib/tree-sitter-styled-text.cs`
 - **Phase**: 3
 - **Test Coverage**: ✅ `packages/core/src/lib/tree-sitter-styled-text.test.ts`
 
